@@ -1,0 +1,35 @@
+name: Windows Native Build
+
+on:
+  push:
+    branches: [main, dev, work]
+  pull_request:
+  release:
+    types: [created]
+
+jobs:
+  windows-native:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python -m pip install pytest
+      - name: Run Windows-native tests
+        run: python -m pytest tests/windows
+      - name: Run build scaffold
+        shell: pwsh
+        run: .\build_windows.ps1
+      - name: Upload portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Odysseus-Portable
+          path: dist/Odysseus-Portable.zip
+      - name: Attach release assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/Odysseus-Portable.zip
